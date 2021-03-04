@@ -4,6 +4,7 @@ import { Appearance } from 'react-native';
 import { ApolloClient, InMemoryCache, gql, useQuery } from '@apollo/client';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import { AppLoading } from 'expo'
 
 import Data from '../Data';
 
@@ -87,11 +88,15 @@ async function registerForPushNotificationsAsync() {
 }
 
 const EventList = () => {
+  const { loading, error, data } = useQuery(GET_EVENTS);
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const notificationListener = useRef();
   const responseListener = useRef();
-  const { loading, error, data } = useQuery(GET_EVENTS);
+  
+  if (loading) {
+    return <AppLoading />
+  }
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
