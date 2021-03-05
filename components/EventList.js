@@ -1,10 +1,19 @@
+import Constants from 'expo-constants';
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, ScrollView, View, Image, Text, Button, Platform } from 'react-native';
+import { 
+  StyleSheet, 
+  ScrollView, 
+  View, 
+  Image, 
+  Text, 
+  Button, 
+  Platform 
+} from 'react-native';
 import { Appearance } from 'react-native';
 import { ApolloClient, InMemoryCache, gql, useQuery } from '@apollo/client';
 import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
-import { AppLoading } from 'expo'
+
+import AppLoading  from 'expo-app-loading'
 
 import Data from '../Data';
 
@@ -22,11 +31,71 @@ const GET_EVENTS = gql`
   }
 `;
 
+
+
+const EventList = () => {
+  
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+  const { loading, error, data } = useQuery(GET_EVENTS);
+   console.log("HELLO LA DATA", loading);
+   console.log("expopush",expoPushToken)
+   console.log('notif', notification)
+  if (loading) {
+    console.log(<AppLoading/>)
+    return <AppLoading />
+  }
+ 
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+      console.log("notif",notification)
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
+  
+  
+
+  return (
+    <ScrollView style={styles.container}>
+      {data.getEvents.map((event => (
+        <View key={event._id} style={styles.eventCard}>
+          <Image source={{ uri: event.image }} style={styles.image} />
+          <View style={styles.contentBox}>
+            <Text>{event.title}</Text>
+            <View style={styles.subContentBox}>
+              <Text style={styles.theme}>{event.theme}</Text>
+              <Text style={[osTheme === 'dark' && Platform.OS === 'android' ? styles.dark : styles.light]}>{event.date}</Text>
+            </View>
+            { event.title? 
+            <Button 
+              title="TEST"
+              onPress={async _ => await schedulePushNotification(event.theme, event.title, event.date)}
+            />: 'no-event'}
+          </View>
+        </View>
+      )))}
+    </ScrollView>
+  );
+}
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: true,
+    shouldSetBadge: false,
   }),
 });
 
@@ -85,58 +154,6 @@ async function registerForPushNotificationsAsync() {
     });
   }
   return token;
-}
-
-const EventList = () => {
-  const { loading, error, data } = useQuery(GET_EVENTS);
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState(false);
-  const notificationListener = useRef();
-  const responseListener = useRef();
-  
-  if (loading) {
-    return <AppLoading />
-  }
-
-  useEffect(() => {
-    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
-
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-      console.log("notif",notification)
-    });
-
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-    return () => {
-      Notifications.removeNotificationSubscription(notificationListener);
-      Notifications.removeNotificationSubscription(responseListener);
-    };
-  }, []);
-  
-  console.log("HELLO LA DATA", data);
-
-  return (
-    <ScrollView style={styles.container}>
-      {data.getEvents.map((event => (
-        <View key={event._id} style={styles.eventCard}>
-          <Image source={{ uri: event.image }} style={styles.image} />
-          <View style={styles.contentBox}>
-            <Text>{event.title}</Text>
-            <View style={styles.subContentBox}>
-              <Text style={styles.theme}>{event.theme}</Text>
-              <Text style={[osTheme === 'dark' && Platform.OS === 'android' ? styles.dark : styles.light]}>{event.date}</Text>
-            </View>
-            <Button
-              title="TEST"
-              onPress={async () => await schedulePushNotification(event.theme, event.title, event.date)}
-            />
-          </View>
-        </View>
-      )))}
-    </ScrollView>
-  );
 }
 
 const styles = StyleSheet.create({
