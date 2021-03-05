@@ -82,7 +82,7 @@ const EventList = () => {
             { event.title? 
             <Button 
               title="TEST"
-              onPress={async _ => await schedulePushNotification(event.theme, event.title, event.date)}
+              onPress={async () => await schedulePushNotification(event.theme, event.title, event.date)}
             />: 'no-event'}
           </View>
         </View>
