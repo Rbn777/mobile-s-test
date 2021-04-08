@@ -10,10 +10,8 @@ import {
   Platform 
 } from 'react-native';
 import { Appearance } from 'react-native';
-import { ApolloClient, InMemoryCache, gql, useQuery } from '@apollo/client';
+import { gql, useQuery } from '@apollo/client';
 import * as Notifications from 'expo-notifications';
-
-import AppLoading  from 'expo-app-loading'
 
 import Data from '../Data';
 
@@ -26,12 +24,12 @@ const GET_EVENTS = gql`
       title
       date
       hour
-      image
+      description
+      infos
+      theme
     }
   }
 `;
-
-
 
 const EventList = () => {
   
@@ -40,14 +38,6 @@ const EventList = () => {
   const notificationListener = useRef();
   const responseListener = useRef();
   const { loading, error, data } = useQuery(GET_EVENTS);
-   console.log("HELLO LA DATA", loading);
-   console.log("expopush",expoPushToken)
-   console.log('notif', notification)
-  if (loading) {
-    console.log(<AppLoading/>)
-    return <AppLoading />
-  }
- 
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
@@ -104,18 +94,14 @@ async function schedulePushNotification(theme,title,date) {
     content: {
       title: `${theme} 📬`,
       body: `${title} le ${date} `,
-      sound: 'suuuuu.wav', // <- for Android below 8.0
+      //sound: 'suuuuu.wav', // <- for Android below 8.0
       data: {
         date: `${date}`
       },
-      audioAttributes: {
-        usage: Notifications.AndroidAudioUsage.NOTIFICATION_EVENT,
-        sound: 'suuuuu.wav'
-      },
     },
     trigger: {
-      seconds: 2,
-      channelId: 'custom', // <- for Android 8.0+, see definition above
+      seconds: 1,
+      //channelId: 'custom', // <- for Android 8.0+, see definition above
     },
   });
 }
@@ -139,20 +125,20 @@ async function registerForPushNotificationsAsync() {
     alert('Must use physical device for Push Notifications');
   }
     
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('custom', {
-      channelId: 'custom',
-      name: 'Suuuu',
-      sound: 'suuuuu.wav',
-      audioAttributes: {
-        usage: Notifications.AndroidAudioUsage.NOTIFICATION_EVENT,
-        sound:'suuuuu.wav'
-      },
-      importance: Notifications.AndroidImportance.MAX,
-      //vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-    });
-  }
+  // if (Platform.OS === 'android') {
+  //   Notifications.setNotificationChannelAsync('custom', {
+  //     channelId: 'custom',
+  //     name: 'Suuuu',
+  //     sound: 'suuuuu.wav',
+  //     audioAttributes: {
+  //       usage: Notifications.AndroidAudioUsage.NOTIFICATION_EVENT,
+  //       sound:'suuuuu.wav'
+  //     },
+  //     importance: Notifications.AndroidImportance.MAX,
+  //     //vibrationPattern: [0, 250, 250, 250],
+  //     lightColor: '#FF231F7C',
+  //   });
+  //}
   return token;
 }
 
