@@ -7,7 +7,8 @@ import {
   Image, 
   Text, 
   Button, 
-  Platform 
+  Platform,
+  FlatList, 
 } from 'react-native';
 import { Appearance } from 'react-native';
 import { gql, useQuery } from '@apollo/client';
@@ -37,10 +38,14 @@ const EventList = () => {
   const [notification, setNotification] = useState(false);
   const notificationListener = useRef();
   const responseListener = useRef();
-  const { loading, error, data } = useQuery(GET_EVENTS);
+  const { loading, data, error } = useQuery(GET_EVENTS);
+  console.log(data, loading, error)
+  if (loading) return <Text>'Loading...'</Text>;
+  if (error) return <Text>`Error! ${error.message}`</Text>;
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+    console.log("Data ===>", data, loading, error)
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       setNotification(notification);
@@ -54,13 +59,15 @@ const EventList = () => {
       Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
     };
-  }, []);
+  }, [data, notification, expoPushToken, notificationListener.current, responseListener, loading, error]);
   
   
 
   return (
     <ScrollView style={styles.container}>
-      {data.getEvents.map((event => (
+      {data && data.getEvents
+      
+      .map((event => (
         <View key={event._id} style={styles.eventCard}>
           <Image source={{ uri: event.image }} style={styles.image} />
           <View style={styles.contentBox}>
