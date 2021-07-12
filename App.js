@@ -16,7 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const Tab = createBottomTabNavigator();
 
 export const client = new ApolloClient({
-  uri: 'https://localhost:7777/graphql',
+  uri: 'https://prod.straribay.wns.wilders.dev/api/graphql',
   cache: new InMemoryCache()
 });
 
@@ -49,9 +49,8 @@ export default function App() {
                 inactiveTintColor: 'gray',
               }}
             >
-              
-            <Tab.Screen name="Evènements" component={EventList} options={{ tabBarBadge: Data.length, tabBarBadgeStyle: { backgroundColor: '#FC8948', color: 'white' } }} />
             <Tab.Screen name="Créer évènement" component={CreateEvent} />
+            <Tab.Screen name="Evènements" component={EventList} options={{ tabBarBadge: Data.length, tabBarBadgeStyle: { backgroundColor: '#FC8948', color: 'white' } }} />
             <Tab.Screen name="Settings" component={Settings} />
           </Tab.Navigator>
         </NavigationContainer>

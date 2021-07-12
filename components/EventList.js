@@ -21,13 +21,14 @@ const osTheme = Appearance.getColorScheme();
 const GET_EVENTS = gql`
   query GetEvents {
     getEvents {
-      _id
-      title
-      date
-      hour
-      description
-      infos
-      theme
+        _id
+        title
+        date
+        hour
+        description
+        infos
+        theme
+        image
     }
   }
 `;
@@ -39,32 +40,30 @@ const EventList = () => {
   const notificationListener = useRef();
   const responseListener = useRef();
   const { loading, data, error } = useQuery(GET_EVENTS);
-  console.log(data, loading, error)
+  console.log("Data, loading, error",data, loading, error)
   if (loading) return <Text>'Loading...'</Text>;
   if (error) return <Text>`Error! ${error.message}`</Text>;
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
-    console.log("Data ===>", data, loading, error)
-
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       setNotification(notification);
       console.log("notif",notification)
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
+      console.log("Response",response);
     });
     return () => {
       Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
     };
-  }, [data, notification, expoPushToken, notificationListener.current, responseListener, loading, error]);
+  }, [ notification, expoPushToken, notificationListener.current, responseListener, loading, error]);
   
   
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} data={data}>
       {data && data.getEvents
       
       .map((event => (
@@ -74,7 +73,7 @@ const EventList = () => {
             <Text>{event.title}</Text>
             <View style={styles.subContentBox}>
               <Text style={styles.theme}>{event.theme}</Text>
-              <Text style={[osTheme === 'dark' && Platform.OS === 'android' ? styles.dark : styles.light]}>{event.date}</Text>
+              <Text style={[osTheme === 'dark' && Platform.OS === 'android' ? styles.dark : styles.light]}>{new Date(event.date*1).toLocaleDateString()}</Text>
             </View>
             { event.title? 
             <Button 
@@ -100,7 +99,7 @@ async function schedulePushNotification(theme,title,date) {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: `${theme} 📬`,
-      body: `${title} le ${date} `,
+      body: `${title} le ${new Date(date *1).toLocaleDateString()} `,
       //sound: 'suuuuu.wav', // <- for Android below 8.0
       data: {
         date: `${date}`
@@ -118,6 +117,7 @@ async function registerForPushNotificationsAsync() {
   if (Constants.isDevice) {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
+    console.log('final',finalStatus)
     if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
