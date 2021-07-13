@@ -12,11 +12,27 @@ import Settings from './components/Settings';
 import Data from './Data';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { setContext } from 'apollo-link-context';
+import { createUploadLink } from 'apollo-upload-client';
 
 const Tab = createBottomTabNavigator();
 
-export const client = new ApolloClient({
+const uploadLink = createUploadLink({
   uri: 'https://prod.straribay.wns.wilders.dev/api/graphql',
+});
+
+const authLink = setContext((_, { headers }) => {
+  return {
+    headers: {
+      ...headers,
+      authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjNGZmYWRkNGNhYTAwMjVhZTZkYTgiLCJlbWFpbCI6InZpbmNlQHRlc3QuZnIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTYyNjA5OTcyNSwiZXhwIjoxNjMxMjgzNzI1fQ.rnN7JVxfK-H-nNej6vdwFNLfcFtoVNYcoZCdgQzbuk0"
+    }
+  }
+});
+
+export const client = new ApolloClient({
+  // uri: 'http://192.168.56.1:7777/graphql',
+  link: authLink.concat(uploadLink),
   cache: new InMemoryCache()
 });
 

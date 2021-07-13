@@ -21,6 +21,7 @@ const osTheme = Appearance.getColorScheme();
 const GET_EVENTS = gql`
   query GetEvents {
     getEvents {
+      event{
         _id
         title
         date
@@ -29,6 +30,7 @@ const GET_EVENTS = gql`
         infos
         theme
         image
+      }      
     }
   }
 `;
@@ -64,7 +66,7 @@ const EventList = () => {
 
   return (
     <ScrollView style={styles.container} data={data}>
-      {data && data.getEvents
+      { data && data.getEvents.event
       
       .map((event => (
         <View key={event._id} style={styles.eventCard}>
